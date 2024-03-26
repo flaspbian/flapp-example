@@ -156,15 +156,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          path: ${{ github.workspace }}/releases
-
-      - name: List downloaded artifacts
-        run: |
-          echo "-------------------------------"
-          ls -lR releases/
-          echo "-------------------------------"
-          ls -la
-          echo "-------------------------------"
+          path: ${{ github.workspace }}
 
       - name: Create Release
         id: create_release
