@@ -8,7 +8,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup Environment
         run: |
@@ -36,7 +36,7 @@ jobs:
       ARCH: ${{ matrix.arch }}
       CPU: ${{ matrix.cpu }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       
       - name: Install Flutter
         run: |
@@ -70,8 +70,8 @@ jobs:
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v2
         with:
-          name: hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
-          path: ./hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
+          name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
+          path: ./hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
 
   build-native:
     needs: setup
@@ -82,7 +82,7 @@ jobs:
     outputs:
       MODULES: ${{ matrix.modules }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       
       - name: Install Flutter
         run: |
@@ -100,14 +100,14 @@ jobs:
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v2
         with:
-          name: hallaos-${{ matrix.modules }}-release.apk
+          name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.modules }}-release.apk
           path: ./build/app/outputs/flutter-apk/app-release.apk
 
   create-release:
     needs: [setup, build-appbundle, build-native]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Download all artifacts
         uses: actions/download-artifact@v2
@@ -145,16 +145,16 @@ jobs:
       #     asset_path: ./hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
       #     asset_name: hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
       #     asset_content_type: application/gzip
+
       - name: Upload release assets
         run: |
-          UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
           for artifact in releases/*; do
             if [[ -d "$artifact" ]]; then # Ensure it's a directory
               ARTIFACT_NAME=$(basename "$artifact")
               # Assuming your artifacts are zipped files in each directory
               for file in "$artifact"/*; do
                 echo "Uploading $file..."
-                gh release upload --clobber --repo ${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }} "${UPLOAD_URL}" "$file" --name "$(basename "$file")"
+                gh release upload ${{ needs.setup.outputs.APP_VERSION }} "$file" --clobber
               done
             fi
           done
