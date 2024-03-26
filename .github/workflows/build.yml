@@ -19,8 +19,7 @@ jobs:
         id: app_version # Assign an id to this step
         run: |
           APP_VERSION=$(grep 'version: ' "./pubspec.yaml" | awk '{print $2}')
-          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
-          echo "::set-output name=APP_VERSION::$APP_VERSION" # Correctly set the output
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_OUTPUT
                 
     outputs:
       APP_VERSION: ${{ steps.app_version.outputs.APP_VERSION }}
@@ -59,7 +58,7 @@ jobs:
       - name: Build App Bundle
         run: |
           echo "$(ls)"
-          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
+          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
