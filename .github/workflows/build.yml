@@ -35,6 +35,10 @@ jobs:
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
           flutter pub get
 
+      - name: Set Output for APP_VERSION
+        id: app_version
+        run: echo "::set-output name=APP_VERSION::$APP_VERSION"
+
       - uses: actions/cache@v2
         with:
           path: |
@@ -50,8 +54,11 @@ jobs:
 
       - name: Build App Bundle
         run: |
-          flutter build ${{ matrix.native }} --release
           flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
+
+      - name: Build Native App
+        run: |
+          flutter build ${{ matrix.native }} --release
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
@@ -79,8 +86,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
-          tag_name: ${{ env.APP_VERSION }}
-          release_name: Release ${{ env.APP_VERSION }}
+          tag_name: ${{ needs.build.outputs.APP_VERSION }}
+          release_name: Release ${{ needs.build.outputs.APP_VERSION }}
           draft: false
           prerelease: false
 
