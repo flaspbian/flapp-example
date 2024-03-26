@@ -160,7 +160,11 @@ jobs:
 
       - name: List downloaded artifacts
         run: |
+          echo "-------------------------------"
           ls -lR releases/
+          echo "-------------------------------"
+          ls -la
+          echo "-------------------------------"
 
       - name: Create Release
         id: create_release
