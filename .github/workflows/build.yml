@@ -14,11 +14,6 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa ninja-build libgtk-3-dev
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-          channel: 'stable'
-      - run: flutter --version
       
       - name: Read pubspec.yaml and Setup Flutter Version
         id: app_version # Assign an id to this step
@@ -26,7 +21,28 @@ jobs:
           APP_VERSION=$(grep 'version: ' "./pubspec.yaml" | awk '{print $2}')
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
           echo "::set-output name=APP_VERSION::$APP_VERSION" # Correctly set the output
+                
+    outputs:
+      APP_VERSION: ${{ steps.app_version.outputs.APP_VERSION }}
+
+  build-appbundle:
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        arch: [arm, arm64, x64]
+        cpu: [generic]
+    steps:
+      - uses: actions/checkout@v2
       
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - run: flutter --version
+
       - uses: actions/cache@v2
         with:
           path: |
@@ -38,23 +54,7 @@ jobs:
       - name: Install flutterpi_tool
         run: |
           flutter pub global activate flutterpi_tool
-          
-    outputs:
-      APP_VERSION: ${{ steps.app_version.outputs.APP_VERSION }}
 
-  build-appbundle:
-    needs: setup
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [arm, arm64, x64]
-        cpu: [generic]
-    steps:
-      - uses: actions/checkout@v2
-      
-      - name: Verify flutterpi_tool Installation
-        run: |
-          ls -la $HOME/.pub-cache/bin
       - name: Build App Bundle
         run: |
           flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
@@ -76,6 +76,12 @@ jobs:
         module: [apk]
     steps:
       - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - run: flutter --version
 
       - name: Build Apk
         run: |
