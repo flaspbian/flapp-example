@@ -5,12 +5,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [arm, arm64, x64]
-        cpu: [generic]
     steps:
       - uses: actions/checkout@v2
 
@@ -34,10 +30,6 @@ jobs:
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
           flutter pub get
 
-      - name: Set Output for APP_VERSION
-        id: app_version
-        run: echo "::set-output name=APP_VERSION::$APP_VERSION"
-
       - uses: actions/cache@v2
         with:
           path: |
@@ -50,10 +42,19 @@ jobs:
         run: |
           flutter pub global activate flutterpi_tool
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          
+    outputs:
+      APP_VERSION: ${{ steps.app_version.outputs.APP_VERSION }}
 
-      - name: Build App Bundle
-        run: |
-          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
+  build-appbundle:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [arm, arm64, x64]
+        cpu: [generic]
+    steps:
+      - uses: actions/checkout@v2
 
       - name: Build Apk
         run: |
@@ -65,11 +66,30 @@ jobs:
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v2
         with:
-          name: hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
+          name: hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release
           path: ./hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
 
-  create_release:
-    needs: build
+  build-native:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [apk]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Apk
+        run: |
+          flutter build apk --release
+
+      - name: Upload Artifact to Workflow Run
+        uses: actions/upload-artifact@v2
+        with:
+          name: hallaos-${{ matrix.module }}-release
+          path: ./build/app/outputs/flutter-apk/app-release.apk
+
+  create-release:
+    needs: [setup, build-appbundle, build-native]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
