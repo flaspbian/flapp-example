@@ -36,15 +36,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-          channel: 'stable'
+      - name: Install Flutter
+        run: |
+          git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+          echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
       - run: flutter --version
-
-      # - name: Precache Flutter Engine and Artifacts
-      #   run: flutter precache
 
       - uses: actions/cache@v2
         with:
@@ -80,10 +77,12 @@ jobs:
         module: [apk]
     steps:
       - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-          channel: 'stable'
+
+      
+      - name: Install Flutter
+        run: |
+          git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+          echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
       - run: flutter --version
 
