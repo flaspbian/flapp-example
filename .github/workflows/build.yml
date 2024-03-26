@@ -2,7 +2,7 @@ name: Build and Release Flutter App for Multiple Linux Architectures
 
 on:
   push:
-    branches: [ main ]
+    branches: [ build ]
 
 jobs:
   build:
@@ -42,7 +42,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pub-cache-
 
-    - name: Install flutterpi_tool (Example)
+    - name: Install flutterpi_tool
       run: |
         flutter pub global activate flutterpi_tool
         echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
