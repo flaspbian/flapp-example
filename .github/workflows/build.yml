@@ -32,6 +32,9 @@ jobs:
       matrix:
         arch: [arm, arm64, x64]
         cpu: [generic]
+    outputs:
+      ARCH: ${{ matrix.arch }}
+      CPU: ${{ matrix.cpu }}
     steps:
       - uses: actions/checkout@v2
       
@@ -54,12 +57,12 @@ jobs:
 
       - name: Install flutterpi_tool
         run: |
-          flutter pub global activate flutterpi_tool --verbose
+          flutter pub global activate flutterpi_tool
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           
       - name: Build App Bundle
         run: |
-          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
+          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
@@ -75,7 +78,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        module: [apk]
+        modules: [apk]
+    outputs:
+      MODULES: ${{ matrix.modules }}
     steps:
       - uses: actions/checkout@v2
       
@@ -90,12 +95,12 @@ jobs:
 
       - name: Build Apk
         run: |
-          flutter build apk --release --verbose
+          flutter build ${{ matrix.modules }} --release
 
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v2
         with:
-          name: hallaos-${{ matrix.module }}-release
+          name: hallaos-${{ matrix.modules }}-release
           path: ./build/app/outputs/flutter-apk/app-release.apk
 
   create-release:
@@ -115,8 +120,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
-          tag_name: ${{ needs.build.outputs.APP_VERSION }}
-          release_name: Release ${{ needs.build.outputs.APP_VERSION }}
+          tag_name: ${{ needs.setup.outputs.APP_VERSION }}
+          release_name: Release ${{ needs.setup.outputs.APP_VERSION }}
           draft: false
           prerelease: false
 
@@ -126,6 +131,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
-          asset_name: hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
+          asset_path: ./hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
+          asset_name: hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
           asset_content_type: application/gzip
