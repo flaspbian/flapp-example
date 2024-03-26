@@ -79,8 +79,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
-          tag_name: ${{ needs.build.outputs.APP_VERSION }}
-          release_name: Release ${{ needs.build.outputs.APP_VERSION }}
+          tag_name: ${{ env.APP_VERSION }}
+          release_name: Release ${{ env.APP_VERSION }}
           draft: false
           prerelease: false
 
