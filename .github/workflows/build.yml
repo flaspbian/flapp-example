@@ -15,9 +15,9 @@ jobs:
         run: |
           if git log -1 --pretty=%B | grep -q 'Increment version to'; then
             echo "Automated commit detected, skipping the rest of the workflow."
-            echo "::set-output name=skip::true"
+            echo "skip=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=skip::false"
+            echo "skip=false" >> $GITHUB_OUTPUT
           fi
 
 
@@ -84,7 +84,7 @@ jobs:
           flutter doctor
           flutter pub get
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.pub-cache
@@ -179,8 +179,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/releases/hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.tar.gz
-          asset_name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.tar.gz
+          asset_path: ${{ github.workspace }}/releases/hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ needs.build-appbundle.outputs.arch }}-${{ needs.build-appbundle.outputs.cpu }}-release.tar.gz
+          asset_name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ needs.build-appbundle.outputs.arch }}-${{ needs.build-appbundle.outputs.cpu }}-release.tar.gz
           asset_content_type: application/gzip
 
 
