@@ -28,7 +28,7 @@ jobs:
           echo "FLUTTER_VERSION=${FLUTTER_VERSION}" >> $GITHUB_ENV
           APP_VERSION=$(grep 'version: ' "./pubspec.yaml" | awk '{print $2}')
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
-          flutter pub get
+          $HOME/flutter/bin/flutter pub get
 
       - uses: actions/cache@v2
         with:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Install flutterpi_tool
         run: |
-          flutter pub global activate flutterpi_tool
+          $HOME/flutter/bin/flutter pub global activate flutterpi_tool
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           
     outputs:
@@ -55,10 +55,13 @@ jobs:
         cpu: [generic]
     steps:
       - uses: actions/checkout@v2
-
+      
+      - name: Verify flutterpi_tool Installation
+        run: |
+          ls -la $HOME/.pub-cache/bin
       - name: Build App Bundle
         run: |
-          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
+          $HOME/.pub-cache/bin/flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
