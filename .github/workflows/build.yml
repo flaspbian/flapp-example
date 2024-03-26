@@ -158,5 +158,15 @@ jobs:
               done
             fi
           done
+          for artifact in ./*; do
+            if [[ -d "$artifact" ]]; then # Ensure it's a directory
+              ARTIFACT_NAME=$(basename "$artifact")
+              # Assuming your artifacts are zipped files in each directory
+              for file in "$artifact"/*; do
+                echo "Uploading $file..."
+                gh release upload ${{ needs.setup.outputs.APP_VERSION }} "$file" --clobber
+              done
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
