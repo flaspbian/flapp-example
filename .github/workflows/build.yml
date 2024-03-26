@@ -8,7 +8,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup Environment
         run: |
@@ -34,7 +34,7 @@ jobs:
         arch: [arm, arm64, x64]
         cpu: [generic]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       
       - uses: subosito/flutter-action@v2
         with:
@@ -43,8 +43,8 @@ jobs:
 
       - run: flutter --version
 
-      - name: Precache Flutter Engine and Artifacts
-        run: flutter precache
+      # - name: Precache Flutter Engine and Artifacts
+      #   run: flutter precache
 
       - uses: actions/cache@v2
         with:
@@ -60,7 +60,7 @@ jobs:
           
       - name: Build App Bundle
         run: |
-          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
+          ~/.pub-cache/bin/flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
@@ -78,7 +78,7 @@ jobs:
       matrix:
         module: [apk]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
@@ -100,7 +100,7 @@ jobs:
     needs: [setup, build-appbundle, build-native]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Download all artifacts
         uses: actions/download-artifact@v2
