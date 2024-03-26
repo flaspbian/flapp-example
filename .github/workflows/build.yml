@@ -11,7 +11,6 @@ jobs:
       matrix:
         arch: [arm, arm64, x64]
         cpu: [generic]
-        native: [apk]
     steps:
       - uses: actions/checkout@v2
 
@@ -56,9 +55,9 @@ jobs:
         run: |
           flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
 
-      - name: Build Native App
+      - name: Build Apk
         run: |
-          flutter build ${{ matrix.native }} --release
+          flutter build apk --release
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
