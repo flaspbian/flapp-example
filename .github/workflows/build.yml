@@ -60,7 +60,7 @@ jobs:
           
       - name: Build App Bundle
         run: |
-          ~/.pub-cache/bin/flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
+          $HOME/runner/.pub-cache/bin/flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
