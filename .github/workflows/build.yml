@@ -21,7 +21,9 @@ jobs:
 
     - name: Install Flutter
       run: |
-        sudo snap install flutter --classic
+        git clone https://github.com/flutter/flutter.git -b stable /usr/local/flutter
+        echo "/usr/local/flutter/bin" >> $GITHUB_PATH
+        flutter doctor
 
     - name: Read pubspec.yaml and Setup Flutter Version
       run: |
@@ -30,7 +32,15 @@ jobs:
         echo "FLUTTER_VERSION=${FLUTTER_VERSION}" >> $GITHUB_ENV
         APP_VERSION=$(grep 'version: ' "./pubspec.yaml" | awk '{print $2}')
         echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
-        flutter doctor
+        flutter pub get
+
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.pub-cache
+        key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-cache-
 
     - name: Install flutterpi_tool (Example)
       run: |
