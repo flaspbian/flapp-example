@@ -11,6 +11,7 @@ jobs:
       matrix:
         arch: [arm, arm64, x64]
         cpu: [generic]
+        native: [apk]
     steps:
       - uses: actions/checkout@v2
 
@@ -49,7 +50,7 @@ jobs:
 
       - name: Build App Bundle
         run: |
-          flutter build apk --release
+          flutter build ${{ matrix.native }} --release
           flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
 
       - name: Archive release build
