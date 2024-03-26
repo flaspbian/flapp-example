@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         arch: [arm, arm64, x64]
-        cpu: [generic]
+        cpu: [generic, pi3, pi4]
     steps:
     - uses: actions/checkout@v2
 
