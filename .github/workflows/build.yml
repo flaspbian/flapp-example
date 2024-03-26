@@ -142,22 +142,18 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       #   with:
       #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
-      #     asset_name: hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
-      #     asset_content_type: application/gzip
+      #     asset_path: ./*
+      #     asset_content_type: [application/gzip, application/octet-stream]
 
       - name: Upload release assets
         run: |
-          for artifact in releases/*; do
-            if [[ -d "$artifact" ]]; then # Ensure it's a directory
-              ARTIFACT_NAME=$(basename "$artifact")
-              # Assuming your artifacts are zipped files in each directory
-              for file in "$artifact"/*; do
-                echo "Uploading $file..."
-                gh release upload ${{ needs.setup.outputs.APP_VERSION }} "$file" --clobber
-              done
+          for file in releases/*; do
+            if [[ -f "$file" ]]; then # Check if it is a file
+              echo "Uploading $file..."
+              gh release upload ${{ needs.setup.outputs.APP_VERSION }} "$file" --clobber
             fi
           done
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
 
