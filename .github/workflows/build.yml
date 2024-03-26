@@ -43,6 +43,9 @@ jobs:
 
       - run: flutter --version
 
+      - name: Precache Flutter Engine and Artifacts
+        run: flutter precache
+
       - uses: actions/cache@v2
         with:
           path: |
@@ -55,9 +58,6 @@ jobs:
         run: |
           flutter pub global activate flutterpi_tool
           
-      - name: Precache Flutter Engine and Artifacts
-        run: flutter precache
-
       - name: Build App Bundle
         run: |
           flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
