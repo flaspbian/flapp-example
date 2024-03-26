@@ -40,7 +40,9 @@ jobs:
           git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
-      - run: flutter --version
+      - run: |
+          flutter doctor
+          flutter pub get
 
       - uses: actions/cache@v2
         with:
@@ -57,8 +59,7 @@ jobs:
           
       - name: Build App Bundle
         run: |
-          echo "$(ls)"
-          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
+          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
@@ -82,8 +83,10 @@ jobs:
         run: |
           git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
-
-      - run: flutter --version
+      
+      - run: |
+          flutter doctor
+          flutter pub get
 
       - name: Build Apk
         run: |
