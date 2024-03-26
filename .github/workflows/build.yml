@@ -1,5 +1,4 @@
-name: Build and Release Flutter App for Multiple Linux Architectures
-
+name: Build and Release
 on:
   push:
     branches: [ main ]
@@ -10,6 +9,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Conditional step to prevent execution for automated commits
+      - name: Check for automated commit
+        id: check_commit
+        run: |
+          if git log -1 --pretty=%B | grep -q 'Increment version to'; then
+            echo "Automated commit detected, skipping the rest of the workflow."
+            echo "::set-output name=skip::true"
+          else
+            echo "::set-output name=skip::false"
+          fi
+
+
+      - name: Increment version in pubspec.yaml
+        if: steps.check_commit.outputs.skip == 'false'
+        run: |
+          # Extract the current version and build number
+          VERSION=$(grep 'version:' pubspec.yaml | awk '{print $2}')
+          BASE_VERSION=$(echo $VERSION | cut -d'+' -f1)
+          BUILD_NUMBER=$(echo $VERSION | cut -d'+' -f2)
+
+          # Increment the build number
+          NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          
+          # Combine them to form the new version
+          NEW_VERSION="$BASE_VERSION+$NEW_BUILD_NUMBER"
+          
+          echo "Old version: $VERSION"
+          echo "New version: $NEW_VERSION"
+          
+          # Update pubspec.yaml with the new version
+          sed -i "s/version: $VERSION/version: $NEW_VERSION/" pubspec.yaml
+          
+          # Use git to commit and push the change
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add pubspec.yaml
+          git commit -m "Increment version to $NEW_VERSION"
+          git push
 
       - name: Setup Environment
         run: |
@@ -17,7 +54,7 @@ jobs:
           sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa ninja-build libgtk-3-dev
 
       - name: Read pubspec.yaml and Setup Flutter Version
-        id: app_version # Assign an id to this step
+        id: app_version
         run: |
           APP_VERSION=$(grep 'version: ' "./pubspec.yaml" | awk '{print $2}')
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_OUTPUT
@@ -109,10 +146,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+
       - name: Download all artifacts
         uses: actions/download-artifact@v2
         with:
           path: ${{ github.workspace }}/releases
+
+      - name: List downloaded artifacts
+        run: |
+          ls -lR releases/
 
       - name: Create Release
         id: create_release
@@ -125,35 +173,26 @@ jobs:
           draft: false
           prerelease: false
 
-        # Artifact hallaos-apk-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-apk-release
-        # Artifact hallaos-arm64-generic-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-arm64-generic-release
-        # Artifact hallaos-arm-generic-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-arm-generic-release
-        # Artifact hallaos-x64-generic-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-x64-generic-release
-      - name: Install GitHub CLI
-        run: |
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh
-
-      # - name: Upload release assets
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./*
-      #     asset_content_type: [application/gzip, application/octet-stream]
-
-      - name: Upload release assets
-        run: |
-          for file in releases/*; do
-            if [[ -f "$file" ]]; then # Check if it is a file
-              echo "Uploading $file..."
-              gh release upload ${{ needs.setup.outputs.APP_VERSION }} "$file" --clobber
-            fi
-          done
+      - name: Upload appbundle release asset
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/releases/hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.tar.gz
+          asset_name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.tar.gz
+          asset_content_type: application/gzip
+
+
+      - name: Upload native release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/releases/app-release.apk
+          asset_name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
+          asset_content_type: application/octet-stream
+
 
 
