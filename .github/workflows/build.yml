@@ -154,7 +154,7 @@ jobs:
           sudo apt install gh
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: ${{ github.workspace }}/releases
 
