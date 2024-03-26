@@ -70,7 +70,7 @@ jobs:
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v2
         with:
-          name: hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release
+          name: hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
           path: ./hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
 
   build-native:
@@ -100,7 +100,7 @@ jobs:
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v2
         with:
-          name: hallaos-${{ matrix.modules }}-release
+          name: hallaos-${{ matrix.modules }}-release.apk
           path: ./build/app/outputs/flutter-apk/app-release.apk
 
   create-release:
@@ -125,12 +125,38 @@ jobs:
           draft: false
           prerelease: false
 
+        # Artifact hallaos-apk-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-apk-release
+        # Artifact hallaos-arm64-generic-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-arm64-generic-release
+        # Artifact hallaos-arm-generic-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-arm-generic-release
+        # Artifact hallaos-x64-generic-release was downloaded to /home/runner/work/HallaOS/HallaOS/releases/hallaos-x64-generic-release
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+      
+      # - name: Upload release assets
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
+      #     asset_name: hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
+      #     asset_content_type: application/gzip
       - name: Upload release assets
-        uses: actions/upload-release-asset@v1
+        run: |
+          UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
+          for artifact in releases/*; do
+            if [[ -d "$artifact" ]]; then # Ensure it's a directory
+              ARTIFACT_NAME=$(basename "$artifact")
+              # Assuming your artifacts are zipped files in each directory
+              for file in "$artifact"/*; do
+                echo "Uploading $file..."
+                gh release upload --clobber --repo ${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }} "${UPLOAD_URL}" "$file" --name "$(basename "$file")"
+              done
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
-          asset_name: hallaos-${{ needs.build-appbundle.outputs.ARCH }}-${{ needs.build-appbundle.outputs.CPU }}-release.tar.gz
-          asset_content_type: application/gzip
