@@ -102,10 +102,10 @@ jobs:
           flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
 
       - name: Archive release build
-        run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
+        run: tar -czvf hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
 
       - name: Upload Artifact to Workflow Run
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
           path: ./hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
@@ -135,7 +135,7 @@ jobs:
           flutter build ${{ matrix.modules }} --release
 
       - name: Upload Artifact to Workflow Run
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.modules }}-release.apk
           path: ./build/app/outputs/flutter-apk/app-release.apk
