@@ -54,14 +54,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-cache-
 
-      - name: Install flutterpi_tool
-        run: |
-          flutter pub global activate flutterpi_tool --verbose
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+      # - name: Install flutterpi_tool
+      #   run: |
+      #     flutter pub global activate flutterpi_tool --verbose
+      #     echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           
       - name: Build App Bundle
         run: |
-          flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
+          flutter pub global run flutterpi_tool:flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release --verbose
 
       - name: Archive release build
         run: tar -czvf hallaos-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
