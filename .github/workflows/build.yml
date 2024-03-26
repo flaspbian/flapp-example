@@ -17,9 +17,9 @@ jobs:
 
       - name: Install Flutter
         run: |
-          git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
-          echo "$HOME/flutter/bin" >> $GITHUB_PATH
-          $HOME/flutter/bin/flutter doctor
+          git clone https://github.com/flutter/flutter.git -b stable $HOME/runner/flutter
+          echo "$HOME/runner/flutter/bin" >> $GITHUB_PATH
+          $HOME/runner/flutter/bin/flutter doctor
 
       - name: Read pubspec.yaml and Setup Flutter Version
         run: |
@@ -28,7 +28,7 @@ jobs:
           echo "FLUTTER_VERSION=${FLUTTER_VERSION}" >> $GITHUB_ENV
           APP_VERSION=$(grep 'version: ' "./pubspec.yaml" | awk '{print $2}')
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
-          $HOME/flutter/bin/flutter pub get
+          $HOME/runner/flutter/bin/flutter pub get
 
       - uses: actions/cache@v2
         with:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Install flutterpi_tool
         run: |
-          $HOME/flutter/bin/flutter pub global activate flutterpi_tool
+          $HOME/runner/flutter/bin/flutter pub global activate flutterpi_tool
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           
     outputs:
@@ -83,7 +83,7 @@ jobs:
 
       - name: Build Apk
         run: |
-          $HOME/flutter/bin/flutter build apk --release
+          $HOME/runner/flutter/bin/flutter build apk --release
 
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v2
