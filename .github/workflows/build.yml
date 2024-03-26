@@ -23,7 +23,7 @@ jobs:
       run: |
         git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
         echo "$HOME/flutter/bin" >> $GITHUB_PATH
-        flutter doctor
+        $HOME/flutter/bin/flutter doctor
 
     - name: Read pubspec.yaml and Setup Flutter Version
       run: |
