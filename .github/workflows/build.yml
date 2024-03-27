@@ -170,13 +170,24 @@ jobs:
           prerelease: false
           
       - name: Upload release assets using GitHub CLI
-        run: |
-          for file in ${{ github.workspace }}/releases/*; do
-            echo "Uploading ${file}..."
-            gh release upload ${{ needs.setup.outputs.APP_VERSION }} "${file}" --clobber
-          done
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          # gh release upload ${{ needs.setup.outputs.APP_VERSION }} ${{ github.workspace }}/releases/*
+
+          for artifact_dir in ${{ github.workspace }}/releases/*; do
+            if [[ -d "$artifact_dir" ]]; then
+              for file in "$artifact_dir"/*; do
+                echo "Uploading ${file}..."
+                gh release upload ${{ needs.setup.outputs.APP_VERSION }} "${file}" --clobber
+              done
+            fi
+          done
+          
+          # for file in ${{ github.workspace }}/releases/*; do
+          #   echo "Uploading ${file}..."
+          #   gh release upload ${{ needs.setup.outputs.APP_VERSION }} "${file}" --clobber
+          # done
         
       # - name: Upload appbundle release asset
       #   uses: actions/upload-release-asset@v1
