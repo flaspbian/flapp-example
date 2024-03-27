@@ -156,7 +156,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ${{ github.workspace }}
+          path: ${{ github.workspace }}/releases
 
       - name: Create Release
         id: create_release
@@ -171,7 +171,7 @@ jobs:
           
       - name: Upload release assets using GitHub CLI
         run: |
-          for file in ${{ github.workspace }}/*; do
+          for file in ${{ github.workspace }}/releases/*; do
             echo "Uploading ${file}..."
             gh release upload ${{ needs.setup.outputs.APP_VERSION }} "${file}" --clobber
           done
