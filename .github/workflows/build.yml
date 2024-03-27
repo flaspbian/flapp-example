@@ -134,11 +134,21 @@ jobs:
         run: |
           flutter build ${{ matrix.modules }} --release
 
+      - name: Rename APK
+        run: |
+          mv ./build/app/outputs/flutter-apk/app-release.apk ./build/app/outputs/flutter-apk/hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
+
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v4
         with:
-          name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.modules }}-release.apk
-          path: ./build/app/outputs/flutter-apk/app-release.apk
+          name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
+          path: ./build/app/outputs/flutter-apk/hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
+
+      # - name: Upload Artifact to Workflow Run
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.modules }}-release.apk
+      #     path: ./build/app/outputs/flutter-apk/app-release.apk
 
   create-release:
     needs: [setup, build-appbundle, build-native]
@@ -169,35 +179,16 @@ jobs:
           draft: false
           prerelease: false
           
-      # - name: Upload release assets using GitHub CLI
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      #   run: |
-      #     for artifact_dir in ${{ github.workspace }}/releases/*; do
-      #       if [[ -d "$artifact_dir" ]]; then
-      #         for file in "$artifact_dir"/*; do
-      #           echo "Uploading ${file}..."
-      #           gh release upload ${{ needs.setup.outputs.APP_VERSION }} "${file}" --clobber
-      #         done
-      #       fi
-      #     done
+      - name: Upload release assets using GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          for artifact_dir in ${{ github.workspace }}/releases/*; do
+            if [[ -d "$artifact_dir" ]]; then
+              for file in "$artifact_dir"/*; do
+                echo "Uploading ${file}..."
+                gh release upload ${{ needs.setup.outputs.APP_VERSION }} "${file}" --clobber
+              done
+            fi
+          done
         
-      - name: Upload appbundle release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/releases/hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ needs.build-appbundle.outputs.arch }}-${{ needs.build-appbundle.outputs.cpu }}-release.tar.gz
-          asset_name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ needs.build-appbundle.outputs.arch }}-${{ needs.build-appbundle.outputs.cpu }}-release.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload native release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/releases/app-release.apk
-          asset_name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
-          asset_content_type: application/octet-stream
