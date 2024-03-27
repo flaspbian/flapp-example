@@ -171,7 +171,7 @@ jobs:
           
       - name: Upload release assets using GitHub CLI
         run: |
-          for file in ${{ github.workspace }}/releases/*; do
+          for file in ${{ github.workspace }}/*; do
             echo "Uploading ${file}..."
             gh release upload ${{ needs.setup.outputs.APP_VERSION }} "${file}" --clobber
           done
