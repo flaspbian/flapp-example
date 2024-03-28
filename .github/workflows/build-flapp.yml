@@ -102,13 +102,13 @@ jobs:
           flutterpi_tool build --arch=${{ matrix.arch }} --cpu=${{ matrix.cpu }} --release
 
       - name: Archive release build
-        run: tar -czvf hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz ./build/flutter_assets/
+        run: tar -czvf hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}.flapp ./build/flutter_assets/
 
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v4
         with:
-          name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
-          path: ./hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}-release.tar.gz
+          name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}.flapp
+          path: ./hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.arch }}-${{ matrix.cpu }}.flapp
 
   build-native:
     needs: setup
@@ -136,19 +136,13 @@ jobs:
 
       - name: Rename APK
         run: |
-          mv ./build/app/outputs/flutter-apk/app-release.apk ./build/app/outputs/flutter-apk/hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
+          mv ./build/app/outputs/flutter-apk/app-release.apk ./build/app/outputs/flutter-apk/hallaos-${{ needs.setup.outputs.APP_VERSION }}.apk
 
       - name: Upload Artifact to Workflow Run
         uses: actions/upload-artifact@v4
         with:
           name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
-          path: ./build/app/outputs/flutter-apk/hallaos-${{ needs.setup.outputs.APP_VERSION }}-release.apk
-
-      # - name: Upload Artifact to Workflow Run
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: hallaos-${{ needs.setup.outputs.APP_VERSION }}-${{ matrix.modules }}-release.apk
-      #     path: ./build/app/outputs/flutter-apk/app-release.apk
+          path: ./build/app/outputs/flutter-apk/hallaos-${{ needs.setup.outputs.APP_VERSION }}.apk
 
   create-release:
     needs: [setup, build-appbundle, build-native]
